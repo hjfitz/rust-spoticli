@@ -14,8 +14,6 @@ impl OauthServer {
         Self {}
     }
 
-    fn get_implicit_routes() {}
-
     pub async fn get_access_token(&self, callback_url: String) -> String {
         let (tx, rx) = channel::unbounded();
 
@@ -31,7 +29,6 @@ impl OauthServer {
             .and(warp::query::<TokenAuth>())
             .map(move |token: TokenAuth| {
                 tx.send(token.access_token).unwrap();
-                tx.send("kill".to_string()).unwrap();
                 Ok(warp::reply::with_status("OK", http::StatusCode::OK))
             });
 
@@ -47,13 +44,10 @@ impl OauthServer {
 
         println!("Go to {} to login", callback_url);
 
-        let mut access_token = String::new();
-        for msg in rx.recv() {
-            match msg.as_str() {
-                "kill" => webserver_thread.abort(),
-                _ => access_token = msg,
-            }
-        }
+        let access_token = rx.recv().unwrap();
+
+        webserver_thread.abort();
+
         access_token
     }
 }

@@ -1,20 +1,13 @@
-extern crate warp;
-
-use crossbeam::channel;
-use serde_derive::Deserialize;
 use std::env;
-use tokio::spawn;
 use url_escape::encode_fragment;
-use warp::{http, Filter};
 
-use super::oauth_server::{self, OauthServer};
+use super::oauth_server::OauthServer;
 
 pub struct SpotifyClient {
     client_id: String,
     client_secret: String,
     scopes: Vec<String>,
     callback_url: String,
-    is_initialised: bool,
     access_token: String,
 }
 
@@ -32,7 +25,6 @@ impl SpotifyClient {
             client_secret,
             callback_url,
             scopes,
-            is_initialised: false,
             access_token: "".to_string(),
         }
     }

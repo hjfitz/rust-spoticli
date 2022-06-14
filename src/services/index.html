@@ -12,7 +12,12 @@
     <script>
         async function main() {
 
-            const token = window.location.hash.slice(1).split('&').find(a => a.startsWith('access_token')).split('=')[1];
+            const token = window.location.hash
+                .slice(1)
+                .split('&')
+                .find(a => a.startsWith('access_token'))
+                .split('=')?.[1];
+
             if (!token) {
                 alert('Unable to find access token');
                 return
