@@ -1,0 +1,38 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+</head>
+
+<body>
+    Logging in...
+    <script>
+        async function main() {
+
+            const token = window.location.hash.slice(1).split('&').find(a => a.startsWith('access_token')).split('=')[1];
+            if (!token) {
+                alert('Unable to find access token');
+                return
+            }
+            console.log({ token });
+
+            const resp = await fetch(`/token?access_token=${token}`, {
+                method: 'POST',
+            });
+
+            if (resp.status >= 400) {
+                alert(await resp.text());
+            } else {
+                console.log('logged in successfully');
+            }
+
+        }
+
+        void main();
+    </script>
+</body>
+
+</html>

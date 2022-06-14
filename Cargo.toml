@@ -1,0 +1,17 @@
+[package]
+name = "spoticli-2"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+darkweb-dotenv = "0.1.0-beta1"
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
+futures = "0.3.21"
+crossbeam = "0.8.1"
+url-escape = "0.1.1"
+serde_derive = "1.0.137"
+serde = "1.0.137"
