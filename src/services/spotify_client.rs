@@ -1,17 +1,13 @@
 extern crate warp;
 
-use std::env;
-
 use crossbeam::channel;
 use serde_derive::Deserialize;
+use std::env;
 use tokio::spawn;
 use url_escape::encode_fragment;
 use warp::{http, Filter};
 
-#[derive(Deserialize)]
-struct TokenAuth {
-    access_token: String,
-}
+use super::oauth_server::{self, OauthServer};
 
 pub struct SpotifyClient {
     client_id: String,
@@ -53,44 +49,12 @@ impl SpotifyClient {
 
     // this should eventually it in it's own OauthServer implementation
     pub async fn perform_oauth_flow(&mut self) {
-        let (tx, rx) = channel::unbounded();
-
-        let file_route = warp::get()
-            .and(warp::path("callback"))
-            .and(warp::path::end())
-            // todo: hardcode this in the file and send str
-            .and(warp::fs::file("./src/services/index.html"));
-
-        let token_route = warp::post()
-            .and(warp::path("token"))
-            .and(warp::path::end())
-            .and(warp::query::<TokenAuth>())
-            .map(move |token: TokenAuth| {
-                tx.send(token.access_token).unwrap();
-                tx.send("kill".to_string()).unwrap();
-                Ok(warp::reply::with_status("OK", http::StatusCode::OK))
-            });
-
-        println!("Spawning server for authentication");
-
-        let handlers = token_route.or(file_route);
-
-        let webserver_thread = tokio::spawn(async move {
-            spawn(warp::serve(handlers).bind(([127, 0, 0, 1], 3000)))
-                .await
-                .unwrap();
-        });
-
+        let oauth_server = OauthServer::new();
         let callback_url = self.get_callback_url();
-        println!("Go to {} to login", callback_url);
 
-        for msg in rx.recv() {
-            match msg.as_str() {
-                "kill" => webserver_thread.abort(),
-                _ => self.access_token = msg,
-            }
-        }
+        let access_token = oauth_server.get_access_token(callback_url).await;
 
+        self.access_token = access_token.to_string();
         self.debug_self();
     }
 
