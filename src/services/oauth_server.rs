@@ -1,4 +1,3 @@
-use crossbeam::channel;
 use serde_derive::Deserialize;
 use tokio::spawn;
 use warp::{http, Filter};
@@ -10,18 +9,20 @@ struct TokenAuth {
 pub struct OauthServer {}
 
 impl OauthServer {
+    // todo: move oauth config to this struct instead of spotify_client
     pub fn new() -> Self {
         Self {}
     }
 
     pub async fn get_access_token(&self, callback_url: String) -> String {
-        let (tx, rx) = channel::unbounded();
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+
+        let redirect_page = include_str!("./index.html");
 
         let file_route = warp::get()
             .and(warp::path("callback"))
             .and(warp::path::end())
-            // todo: hardcode this in the file and send str
-            .and(warp::fs::file("./src/services/index.html"));
+            .map(move || warp::reply::html(redirect_page));
 
         let token_route = warp::post()
             .and(warp::path("token"))
@@ -44,7 +45,7 @@ impl OauthServer {
 
         println!("Go to {} to login", callback_url);
 
-        let access_token = rx.recv().unwrap();
+        let access_token = rx.recv().await.unwrap();
 
         webserver_thread.abort();
 
