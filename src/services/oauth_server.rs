@@ -1,5 +1,7 @@
 use serde_derive::Deserialize;
+use std::env;
 use tokio::spawn;
+use url_escape::encode_fragment;
 use warp::{http, Filter};
 
 #[derive(Deserialize)]
@@ -14,7 +16,20 @@ impl OauthServer {
         Self {}
     }
 
-    pub async fn get_access_token(&self, callback_url: String) -> String {
+    fn get_callback_url() -> String {
+        let client_id = env::var("SPOTIFY_CLIENT_ID").unwrap();
+        let callback_url = env::var("SPOTIFY_CALLBACK_URL").unwrap();
+        let scopes = env::var("SPOTIFY_SCOPES").unwrap();
+
+        format!(
+            "https://accounts.spotify.com/authorize?response_type=token&client_id={}&scope={}&redirect_uri={}",
+            encode_fragment(&client_id).to_owned(),
+            encode_fragment(&scopes),
+            encode_fragment(&callback_url),
+        )
+    }
+
+    pub async fn get_access_token(&self) -> String {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
 
         let redirect_page = include_str!("./index.html");
@@ -42,6 +57,8 @@ impl OauthServer {
                 .await
                 .unwrap();
         });
+
+        let callback_url = OauthServer::get_callback_url();
 
         println!("Go to {} to login", callback_url);
 

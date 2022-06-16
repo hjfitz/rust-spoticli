@@ -4,25 +4,18 @@ mod types;
 use darkweb_dotenv::Dotenv;
 use services::spotify_client::SpotifyClient;
 
+use crate::services::{oauth_server::OauthServer, spotify_adapter::SpotifyAdapter};
+
 #[tokio::main]
 async fn main() {
     let mut dotenv = Dotenv::new();
     dotenv.load_env(".env", "APP_ENV", "dev").unwrap();
 
-    println!("Env initialised");
+    let oauth_server = OauthServer::new();
 
-    let mut spotify = SpotifyClient::new();
-    spotify.debug_env();
-    println!("Client initialised");
+    let spotify_access_token = oauth_server.get_access_token().await;
 
-    println!("Starting oauth flow");
-
-    spotify.perform_oauth_flow().await;
-
-    // let now_playing = spotify.get_now_playing().await;
-    // println!("Currently playing: {:#?}", now_playing);
-
-    // let playlists = spotify.get_playlists().await;
+    let spotify = SpotifyClient::new(SpotifyAdapter::new(spotify_access_token));
 
     let playback_state = spotify.get_playback_state().await;
     println!("Player state: {:#?}", playback_state);

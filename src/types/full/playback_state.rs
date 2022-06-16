@@ -17,7 +17,6 @@ pub struct PlaybackState {
     pub item: Item,
     #[serde(rename = "currently_playing_type")]
     pub currently_playing_type: String,
-    pub actions: Actions,
     #[serde(rename = "is_playing")]
     pub is_playing: bool,
 }
@@ -155,22 +154,4 @@ pub struct ExternalIds {
 #[serde(rename_all = "camelCase")]
 pub struct ExternalUrls4 {
     pub spotify: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Actions {
-    pub disallows: Disallows,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Disallows {
-    pub resuming: bool,
-    #[serde(rename = "toggling_repeat_context")]
-    pub toggling_repeat_context: bool,
-    #[serde(rename = "toggling_repeat_track")]
-    pub toggling_repeat_track: bool,
-    #[serde(rename = "toggling_shuffle")]
-    pub toggling_shuffle: bool,
 }

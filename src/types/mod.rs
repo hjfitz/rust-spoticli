@@ -1,2 +1,1 @@
-pub mod now_playing;
-pub mod playback_state;
+pub mod full;
