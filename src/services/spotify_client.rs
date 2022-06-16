@@ -11,14 +11,6 @@ impl SpotifyClient {
         SpotifyClient { adapter }
     }
 
-    // @deprecated - use get_playback_state
-    pub async fn get_now_playing(self) -> NowPlaying {
-        self.adapter
-            .get::<NowPlaying>("/me/player/currently-playing")
-            .await
-            .unwrap()
-    }
-
     pub async fn get_playback_state(self) -> Option<PlaybackState> {
         let resp = self.adapter.get::<PlaybackState>("/me/player").await;
 
@@ -28,15 +20,14 @@ impl SpotifyClient {
         }
     }
 
-    // get_playlists(self) -> Result<Playlists> {
+    // todo: types and ensure parsing ok
+    get_playlists(self, user_id: String) -> Result<PlaylistResponseDTO> {
+        let pathname = format!("/users/{}/playlists", user_id);
+        let playlists = self.adapter.get::<Vec<Playlists>>("/users/");
 
-    // }
+    }
 
-    // pub async fn perform_oauth_flow(&mut self) {
-    //     let oauth_server = OauthServer::new();
-    //     let callback_url = self.get_callback_url();
-
-    //     let access_token = oauth_server.get_access_token(callback_url).await;
-    //     self.adapter.set_access_token(access_token);
-    // }
+    // get_playlist_content(self, playlist_name: String) -> ??? {
+    //     let pathname = format!("/playlists/{}/tracks", playlist_name)
+    //}
 }
