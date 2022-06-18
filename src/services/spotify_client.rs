@@ -1,7 +1,7 @@
 use crate::services::spotify_adapter::SpotifyAdapter;
-use crate::types::full::now_playing::NowPlaying;
 use crate::types::full::playback_state::PlaybackState;
 
+#[derive(Clone)]
 pub struct SpotifyClient {
     adapter: SpotifyAdapter,
 }
@@ -11,7 +11,7 @@ impl SpotifyClient {
         Self { adapter }
     }
 
-    pub async fn get_playback_state(self) -> Option<PlaybackState> {
+    pub async fn get_playback_state(&self) -> Option<PlaybackState> {
         let resp = self.adapter.get::<PlaybackState>("/me/player").await;
 
         match resp {

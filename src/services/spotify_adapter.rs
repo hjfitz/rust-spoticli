@@ -1,5 +1,6 @@
 const SPOTIFY_API_BASE: &'static str = "https://api.spotify.com/v1";
 
+#[derive(Clone)]
 pub struct SpotifyAdapter {
     access_token: String,
     http_client: reqwest::Client,
