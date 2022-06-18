@@ -31,7 +31,7 @@ async fn main() {
 
     // playlist view doesn't really need any kind of timer. it's more involved internally though
 
-    // this will probably wind up in an adapter class with a ref to each of the parameters and a single public 'update' method
+    // NEXT: this will probably wind up in an adapter class with a ref to each of the parameters and a single public 'update' method
     async fn update_live_player(
         spotify: &SpotifyClient,
         progress_bar_state: &mut ProgressBarState,
