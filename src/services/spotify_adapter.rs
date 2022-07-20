@@ -20,7 +20,7 @@ impl SpotifyAdapter {
         SPOTIFY_API_BASE.to_owned() + path
     }
 
-    pub async fn get<T: serde::de::DeserializeOwned>(&self, pathname: &str) -> Result<T, ()> {
+    pub async fn get<T: serde::de::DeserializeOwned>(&self, pathname: &str) -> Result<T, String> {
         let full_api_url = SpotifyAdapter::get_api_url(pathname);
 
         let resp_raw = self
@@ -32,13 +32,14 @@ impl SpotifyAdapter {
 
         if resp_raw.is_err() {
             println!("{}", resp_raw.unwrap_err());
-            panic!("Unable to make request to {}", pathname);
+            println!("Unable to make request to {}", pathname);
+            return Err(format!("Unable to make request to {}", pathname))
         }
 
         let resp = resp_raw.unwrap().text().await;
 
         if resp.is_err() {
-            panic!("Unable to parse response to text");
+            return Err("Unable to parse response to text".to_string())
         }
 
         let parsed_response: T = serde_json::from_str(&resp.unwrap()).unwrap();
