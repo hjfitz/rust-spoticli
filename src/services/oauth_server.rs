@@ -8,6 +8,7 @@ use warp::{http, Filter};
 struct TokenAuth {
     access_token: String,
 }
+
 pub struct OauthServer {}
 
 impl OauthServer {

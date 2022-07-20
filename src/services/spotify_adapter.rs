@@ -17,7 +17,7 @@ impl SpotifyAdapter {
     }
 
     fn get_api_url(path: &str) -> String {
-        SPOTIFY_API_BASE.to_owned() + &path.to_string()
+        SPOTIFY_API_BASE.to_owned() + path
     }
 
     pub async fn get<T: serde::de::DeserializeOwned>(&self, pathname: &str) -> Result<T, ()> {
@@ -31,6 +31,7 @@ impl SpotifyAdapter {
             .await;
 
         if resp_raw.is_err() {
+            println!("{}", resp_raw.unwrap_err());
             panic!("Unable to make request to {}", pathname);
         }
 

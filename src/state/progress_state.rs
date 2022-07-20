@@ -33,10 +33,7 @@ impl ProgressBarState {
     }
 
     pub fn set_new_track(&mut self, cur_progress: Option<i64>, track_seconds: i64) {
-        self.seconds_elapsed = match cur_progress {
-            Some(t) => t,
-            None => 0,
-        };
+        self.seconds_elapsed = cur_progress.unwrap_or(0);
         self.track_time_seconds = track_seconds;
     }
 
@@ -47,9 +44,5 @@ impl ProgressBarState {
         let progress = format!("{}/{}", track_time, listened_time);
 
         progress
-    }
-
-    pub fn should_poll(&self) -> bool {
-        self.seconds_elapsed >= self.track_time_seconds
     }
 }

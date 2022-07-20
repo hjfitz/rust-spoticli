@@ -8,10 +8,8 @@ pub struct UpdateTicks {
 
 impl UpdateTicks {
     pub fn new(interval: Option<i64>) -> Self {
-        let interval_ms = match interval {
-            Some(i) => i,
-            None => 1000,
-        };
+        let interval_ms = interval.unwrap_or(1000);
+
         Self {
             last_updated_at: SystemTime::now(),
             interval_ms,
