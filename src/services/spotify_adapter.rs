@@ -33,13 +33,13 @@ impl SpotifyAdapter {
         if resp_raw.is_err() {
             println!("{}", resp_raw.unwrap_err());
             println!("Unable to make request to {}", pathname);
-            return Err(format!("Unable to make request to {}", pathname))
+            return Err(format!("Unable to make request to {}", pathname));
         }
 
         let resp = resp_raw.unwrap().text().await;
 
         if resp.is_err() {
-            return Err("Unable to parse response to text".to_string())
+            return Err("Unable to parse response to text".to_string());
         }
 
         let parsed_response: T = serde_json::from_str(&resp.unwrap()).unwrap();
