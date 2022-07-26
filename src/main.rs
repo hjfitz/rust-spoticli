@@ -29,14 +29,7 @@ async fn main() -> Result<(), io::Error> {
 
     let spotify = SpotifyClient::new(SpotifyAdapter::new(spotify_access_token));
 
-    let stdout = io::stdout();
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
     let playlists = spotify.fetch_playlists().await;
-    let playlist_state = PlaylistState::new();
-    let mut player_ui = PlayerUi::new(playlists, playlist_state, terminal);
-
-    player_ui.init_display()?;
 
     let (playing_tx, mut playing_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -52,10 +45,17 @@ async fn main() -> Result<(), io::Error> {
     });
 
     let ui_thread = tokio::spawn(async move {
+        let stdout = io::stdout();
+        let backend = CrosstermBackend::new(stdout);
+        let terminal = Terminal::new(backend).unwrap();
+        let playlist_state = PlaylistState::new();
+        let mut player_ui = PlayerUi::new(playlists, playlist_state, terminal);
+        player_ui.init_display().unwrap();
         loop {
-            let data = playing_rx.recv().await.unwrap();
-            println!("{}", data.now_playing);
-            println!("{}", data.time);
+            let data = playing_rx.recv().await;
+            if data.is_some() {
+                player_ui.redraw(data.unwrap()).unwrap();
+            }
             thread::sleep(THREAD_SLEEP_DURATION);
         }
     });

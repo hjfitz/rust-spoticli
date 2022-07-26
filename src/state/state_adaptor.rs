@@ -1,10 +1,12 @@
 use super::update_ticks::UpdateTicks;
+use crate::state::progress_state::RawProgress;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
 use tokio::sync::mpsc::UnboundedSender;
 
 pub struct PlayerState {
     pub now_playing: String,
     pub time: String,
+    pub raw_time: RawProgress,
 }
 
 pub struct StateAdaptor {
@@ -63,6 +65,7 @@ impl StateAdaptor {
         let state = PlayerState {
             now_playing: self.player_state.to_player_string(),
             time: self.progress_state.get_player_progress_seconds_str(),
+            raw_time: self.progress_state.get_player_progress_seconds_raw(),
         };
 
         // todo: handle

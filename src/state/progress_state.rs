@@ -8,6 +8,11 @@ pub struct ProgressBarState {
     update_state: UpdateTicks,
 }
 
+pub struct RawProgress {
+    pub track_time_seconds: i64,
+    pub seconds_elapsed: i64,
+}
+
 impl ProgressBarState {
     pub fn new() -> Self {
         let update_state = UpdateTicks::new(Some(1000));
@@ -41,8 +46,15 @@ impl ProgressBarState {
         let track_time = seconds_to_time_string(self.track_time_seconds);
         let listened_time = seconds_to_time_string(self.seconds_elapsed);
 
-        let progress = format!("{}/{}", track_time, listened_time);
+        let progress = format!("{}/{}", listened_time, track_time);
 
         progress
+    }
+
+    pub fn get_player_progress_seconds_raw(&self) -> RawProgress {
+        RawProgress {
+            track_time_seconds: self.track_time_seconds,
+            seconds_elapsed: self.seconds_elapsed,
+        }
     }
 }
