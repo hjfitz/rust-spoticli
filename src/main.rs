@@ -48,8 +48,8 @@ async fn main() -> Result<(), io::Error> {
         let stdout = io::stdout();
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend).unwrap();
-        let playlist_state = PlaylistState::new();
-        let mut player_ui = PlayerUi::new(playlists, playlist_state, terminal);
+        // let playlist_state = PlaylistState::new();
+        let mut player_ui = PlayerUi::new(playlists, terminal);
         player_ui.init_display().unwrap();
         loop {
             let data = playing_rx.recv().await;

@@ -58,8 +58,12 @@ impl StateAdaptor {
     }
 
     pub async fn poll(&mut self) {
-        if self.update_state.can_update() {
+        if self.player_state.can_update() {
             self.update_live_player().await;
+        }
+
+        if self.progress_state.can_update() {
+            self.progress_state.bump_player_progress();
         }
 
         let state = PlayerState {

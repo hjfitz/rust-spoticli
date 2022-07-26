@@ -9,7 +9,7 @@ pub struct NowPlaying {
     pub context: Value,
     #[serde(rename = "progress_ms")]
     pub progress_ms: i64,
-    pub item: Item,
+    pub item: Option<Item>,
     #[serde(rename = "currently_playing_type")]
     pub currently_playing_type: String,
     #[serde(rename = "is_playing")]

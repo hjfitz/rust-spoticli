@@ -25,8 +25,8 @@ impl ProgressBarState {
     }
 
     pub fn can_update(&mut self) -> bool {
-        // !self.is_paused && self.update_state.can_update()
-        self.update_state.can_update()
+        !self.is_paused && self.update_state.can_update()
+        // self.update_state.can_update()
     }
 
     pub fn bump_player_progress(&mut self) {

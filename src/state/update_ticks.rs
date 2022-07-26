@@ -4,6 +4,7 @@ pub struct UpdateTicks {
     pub last_updated_at: SystemTime,
     pub interval_ms: i64,
     pub ms_since_update: i64, // probably going to change
+    pub should_hydrate: bool,
 }
 
 impl UpdateTicks {
@@ -13,13 +14,15 @@ impl UpdateTicks {
         Self {
             last_updated_at: SystemTime::now(),
             interval_ms,
-            ms_since_update: 0,
+            ms_since_update: interval_ms, // 0,
+            should_hydrate: true,
         }
     }
 
     pub fn reset(&mut self) {
         self.last_updated_at = SystemTime::now();
         self.ms_since_update = 0;
+        self.should_hydrate = false;
     }
 
     pub fn can_update(&mut self) -> bool {
@@ -33,6 +36,6 @@ impl UpdateTicks {
             .unwrap();
 
         self.ms_since_update = ms_since_update;
-        self.ms_since_update >= self.interval_ms
+        self.should_hydrate || self.ms_since_update >= self.interval_ms
     }
 }

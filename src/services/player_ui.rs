@@ -9,7 +9,7 @@ use tui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     symbols,
-    widgets::{Block, BorderType, Borders, LineGauge, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, Borders, LineGauge, List, ListItem, ListState, Paragraph},
     Terminal,
 };
 
@@ -24,7 +24,7 @@ use crate::state::state_adaptor::PlayerState;
 const PLAYER_DEFAULT_MARGIN: u16 = 1;
 
 pub struct PlayerUi {
-    state: PlaylistState,
+    playlist_state: ListState,
     playlists: Vec<AppPlaylist>,
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
 }
@@ -32,11 +32,12 @@ pub struct PlayerUi {
 impl PlayerUi {
     pub fn new(
         playlists: Vec<AppPlaylist>,
-        state: PlaylistState,
         terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     ) -> Self {
+        let mut playlist_state = ListState::default();
+        playlist_state.select(Some(0));
         Self {
-            state,
+            playlist_state,
             playlists,
             terminal,
         }
@@ -58,7 +59,7 @@ impl PlayerUi {
             .map(|p| ListItem::new(p.name.clone()))
             .collect::<Vec<ListItem>>();
 
-        let playlist_test_items = self.playlists[0]
+        let playlist_test_items = self.playlists[12]
             .items
             .iter()
             .map(|i| ListItem::new(i.track.name.clone()))
@@ -128,21 +129,25 @@ impl PlayerUi {
                 .block(Block::default().title("Playlists").borders(Borders::ALL))
                 .style(Style::default().fg(Color::White))
                 .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
-                .highlight_symbol(">>");
+                .highlight_symbol(" 👉 ");
 
             let playlist_items_list = List::new(playlist_test_items)
                 .block(
                     Block::default()
-                        .title("My Playlist #69")
+                        .title("🍔🍕 full snack web development")
                         .borders(Borders::ALL),
                 )
                 .style(Style::default().fg(Color::White))
                 .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
-                .highlight_symbol(">>");
+                .highlight_symbol(" 👉  ");
 
             frame.render_widget(now_playing_para, chunks[1]);
             frame.render_widget(time_guage, chunks[2]);
-            frame.render_widget(playlist_list, playlist_list_chunk);
+            frame.render_stateful_widget(
+                playlist_list,
+                playlist_list_chunk,
+                &mut self.playlist_state,
+            );
             frame.render_widget(playlist_items_list, playlist_contents_chunk);
         })?;
 
