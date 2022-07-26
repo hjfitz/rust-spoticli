@@ -42,6 +42,7 @@ impl StateAdaptor {
             let listened_seconds = playing.progress_ms / 1000;
             self.progress_state
                 .set_new_track(Some(listened_seconds), track_seconds);
+            self.progress_state.set_is_playing(playing.is_playing);
             self.player_state.set_now_playing(
                 playing.item.name,
                 playing.item.album.name,

@@ -4,7 +4,7 @@ use crate::util::time::seconds_to_time_string;
 pub struct ProgressBarState {
     track_time_seconds: i64,
     seconds_elapsed: i64,
-    is_paused: bool,
+    is_playing: bool,
     update_state: UpdateTicks,
 }
 
@@ -20,12 +20,12 @@ impl ProgressBarState {
             track_time_seconds: 0,
             seconds_elapsed: 0,
             update_state,
-            is_paused: true,
+            is_playing: true,
         }
     }
 
     pub fn can_update(&mut self) -> bool {
-        !self.is_paused && self.update_state.can_update()
+        self.is_playing && self.update_state.can_update()
         // self.update_state.can_update()
     }
 
@@ -40,6 +40,10 @@ impl ProgressBarState {
     pub fn set_new_track(&mut self, cur_progress: Option<i64>, track_seconds: i64) {
         self.seconds_elapsed = cur_progress.unwrap_or(0);
         self.track_time_seconds = track_seconds;
+    }
+
+    pub fn set_is_playing(&mut self, playing: bool) {
+        self.is_playing = playing;
     }
 
     pub fn get_player_progress_seconds_str(&self) -> String {

@@ -1,6 +1,8 @@
+mod events;
 mod services;
 mod state;
 mod types;
+mod ui;
 mod util;
 
 use std::{io, thread, time::Duration};
@@ -9,15 +11,16 @@ use darkweb_dotenv::Dotenv;
 use services::spotify_client::SpotifyClient;
 use tui::{backend::CrosstermBackend, Terminal};
 
-use crate::services::{
-    oauth_server::OauthServer, player_ui::PlayerUi, spotify_adapter::SpotifyAdapter,
-};
+use crate::ui::player_ui::PlayerUi;
+
+use crate::services::{oauth_server::OauthServer, spotify_adapter::SpotifyAdapter};
 use crate::state::{
-    playing_state::PlayingState, playlist_state::PlaylistState, progress_state::ProgressBarState,
-    state_adaptor::StateAdaptor,
+    playing_state::PlayingState, progress_state::ProgressBarState, state_adaptor::StateAdaptor,
 };
 
-const THREAD_SLEEP_DURATION: std::time::Duration = Duration::from_millis(500);
+use crate::events::keyboard_events::KeyboardEvents;
+
+const THREAD_SLEEP_DURATION: std::time::Duration = Duration::from_millis(50);
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
@@ -32,6 +35,7 @@ async fn main() -> Result<(), io::Error> {
     let playlists = spotify.fetch_playlists().await;
 
     let (playing_tx, mut playing_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (events_tx, mut events_rx) = tokio::sync::mpsc::unbounded_channel();
 
     let polling_thread = tokio::spawn(async move {
         let progress_bar_state = ProgressBarState::new();
@@ -48,10 +52,13 @@ async fn main() -> Result<(), io::Error> {
         let stdout = io::stdout();
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend).unwrap();
-        // let playlist_state = PlaylistState::new();
         let mut player_ui = PlayerUi::new(playlists, terminal);
         player_ui.init_display().unwrap();
         loop {
+            let kb_event = events_rx.try_recv();
+            if kb_event.is_ok() {
+                player_ui.handle_keyboard_events(kb_event.unwrap()).unwrap();
+            }
             let data = playing_rx.recv().await;
             if data.is_some() {
                 player_ui.redraw(data.unwrap()).unwrap();
@@ -59,8 +66,18 @@ async fn main() -> Result<(), io::Error> {
             thread::sleep(THREAD_SLEEP_DURATION);
         }
     });
+
+    let events_thread = tokio::spawn(async move {
+        let keyboard_events = KeyboardEvents::new(events_tx);
+        loop {
+            keyboard_events.poll().unwrap();
+            thread::sleep(THREAD_SLEEP_DURATION);
+        }
+    });
+
     polling_thread.await.unwrap();
     ui_thread.await.unwrap();
+    events_thread.await.unwrap();
 
     Ok(())
 }

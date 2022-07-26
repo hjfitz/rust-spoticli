@@ -36,13 +36,6 @@ impl SpotifyClient {
         playlist.ok()
     }
 
-    pub async fn get_playlist_raw(&self, playlist_name: String) -> String {
-        let pathname = format!("/playlists/{}/tracks", playlist_name);
-        let playlist = self.adapter.get_raw(&pathname).await;
-
-        playlist.unwrap()
-    }
-
     pub async fn get_user(&self) -> Option<SpotifyUser> {
         let me = self.adapter.get::<SpotifyUser>("/me").await;
 
