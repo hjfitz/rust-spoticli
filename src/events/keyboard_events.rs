@@ -14,11 +14,17 @@ impl KeyboardEvents {
     pub fn poll(&self) -> Result<(), io::Error> {
         if let Event::Key(key) = event::read()? {
             match key.code {
-                KeyCode::Down => {
+                KeyCode::Down | KeyCode::Char('k') => {
                     self.tx.send(SpotifyEvents::NavigateDown);
                 }
-                KeyCode::Up => {
+                KeyCode::Up | KeyCode::Char('j') => {
                     self.tx.send(SpotifyEvents::NavigateUp);
+                }
+                KeyCode::Left | KeyCode::Char('h') => {
+                    self.tx.send(SpotifyEvents::NavigateLeft);
+                }
+                KeyCode::Right | KeyCode::Char('l') => {
+                    self.tx.send(SpotifyEvents::NavigateRight);
                 }
                 KeyCode::Char('q') => {
                     self.tx.send(SpotifyEvents::Quit);

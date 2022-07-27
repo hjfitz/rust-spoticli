@@ -14,7 +14,7 @@ use tui::{
 };
 
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -25,12 +25,18 @@ use super::builder::{Builder, PlayerAreas};
 
 use crate::state::state_adaptor::PlayerState;
 
-const PLAYER_DEFAULT_MARGIN: u16 = 1;
+#[derive(PartialEq)]
+enum SelectedPane {
+    Playlist,
+    Tracks,
+}
 
 pub struct PlayerUi {
     playlist_state: ListState,
+    playlist_track_states: Vec<ListState>,
     playlists: Vec<AppPlaylist>,
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
+    selected_pane: SelectedPane,
 }
 
 impl PlayerUi {
@@ -40,10 +46,21 @@ impl PlayerUi {
     ) -> Self {
         let mut playlist_state = ListState::default();
         playlist_state.select(Some(0));
+        let mut playlist_track_states = vec![];
+
+        // initialise states for cursor in each playlist
+        for _ in 0..playlists.len() {
+            let mut track_state = ListState::default();
+            track_state.select(Some(0));
+            playlist_track_states.push(track_state);
+        }
+
         Self {
             playlist_state,
             playlists,
             terminal,
+            playlist_track_states,
+            selected_pane: SelectedPane::Tracks,
         }
     }
 
@@ -81,37 +98,89 @@ impl PlayerUi {
             frame.render_widget(now_playing_para, title);
             frame.render_widget(time_gauge, progress);
             frame.render_stateful_widget(playlist_list, playlists, &mut self.playlist_state);
-            frame.render_widget(playlist_items_list, tracks);
+            frame.render_stateful_widget(
+                playlist_items_list,
+                tracks,
+                &mut self.playlist_track_states[playlist_idx],
+            );
         })?;
 
         Ok(())
     }
 
     pub fn handle_keyboard_events(&mut self, event: SpotifyEvents) -> Result<(), io::Error> {
+        match self.selected_pane {
+            SelectedPane::Playlist => {
+                match event {
+                    SpotifyEvents::NavigateDown => {
+                        // let iterator =
+                        let cur_state = &mut self.playlist_state;
+                        let cur_idx = cur_state.selected().unwrap_or(0);
+                        let next_idx = if cur_idx + 1 >= self.playlists.len() {
+                            cur_idx
+                        } else {
+                            cur_idx + 1
+                        };
+
+                        cur_state.select(Some(next_idx));
+                        return Ok(());
+                    }
+                    SpotifyEvents::NavigateUp => {
+                        let cur_idx = self.playlist_state.selected().unwrap_or(0);
+                        let next_idx = if cur_idx == 0 { cur_idx } else { cur_idx - 1 };
+
+                        self.playlist_state.select(Some(next_idx));
+                    }
+                    _ => {}
+                }
+            }
+            SelectedPane::Tracks => {
+                match event {
+                    SpotifyEvents::NavigateDown => {
+                        // let iterator =
+                        let playlist_tracks_state_idx = self.playlist_state.selected().unwrap_or(0);
+                        let cur_state = &mut self.playlist_track_states[playlist_tracks_state_idx];
+                        let cur_idx = cur_state.selected().unwrap_or(0);
+                        let next_idx = if cur_idx + 1
+                            >= self.playlists[playlist_tracks_state_idx].items.len()
+                        {
+                            0
+                        } else {
+                            cur_idx + 1
+                        };
+
+                        cur_state.select(Some(next_idx));
+                        return Ok(());
+                    }
+                    SpotifyEvents::NavigateUp => {
+                        let playlist_tracks_state_idx = self.playlist_state.selected().unwrap_or(0);
+                        let cur_state = &mut self.playlist_track_states[playlist_tracks_state_idx];
+                        let cur_idx = cur_state.selected().unwrap_or(0);
+                        let next_idx = if cur_idx == 0 {
+                            self.playlists[playlist_tracks_state_idx].items.len() - 1
+                        } else {
+                            cur_idx - 1
+                        };
+
+                        cur_state.select(Some(next_idx));
+                    }
+                    _ => {}
+                }
+            }
+        }
         match event {
-            SpotifyEvents::NavigateDown => {
-                let cur_idx = self.playlist_state.selected().unwrap_or(0);
-                let next_idx = if cur_idx + 1 >= self.playlists.len() {
-                    cur_idx
-                } else {
-                    cur_idx + 1
-                };
-
-                self.playlist_state.select(Some(next_idx));
-            }
-            SpotifyEvents::NavigateUp => {
-                let cur_idx = self.playlist_state.selected().unwrap_or(0);
-                let next_idx = if cur_idx == 0 { cur_idx } else { cur_idx - 1 };
-
-                self.playlist_state.select(Some(next_idx));
-            }
             SpotifyEvents::Quit => {
                 self.tear_down()?;
                 process::exit(0x0100);
             }
-            _ => {}
+            SpotifyEvents::NavigateLeft => {
+                self.selected_pane = SelectedPane::Playlist;
+            }
+            SpotifyEvents::NavigateRight => {
+                self.selected_pane = SelectedPane::Tracks;
+            }
+            _ => return Ok(()),
         }
-
         Ok(())
     }
 

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 const SPOTIFY_API_BASE: &'static str = "https://api.spotify.com/v1";
 
 #[derive(Clone)]
@@ -42,9 +44,17 @@ impl SpotifyAdapter {
             return Err("Unable to parse response to text".to_string());
         }
 
-        let parsed_response: T = serde_json::from_str(&resp.unwrap()).unwrap();
+        let resp_data = resp.unwrap();
 
-        Ok(parsed_response)
+        let parsed_response = serde_json::from_str(&resp_data);
+
+        if parsed_response.is_err() {
+            println!("{}", resp_data.clone());
+            panic!("{:?}", parsed_response.err());
+            return Err("Unable to parse response".to_string());
+        }
+
+        Ok(parsed_response.unwrap())
     }
 
     pub async fn get_raw(&self, pathname: &str) -> Result<String, ()> {

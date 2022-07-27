@@ -1,4 +1,3 @@
-use super::update_ticks::UpdateTicks;
 use crate::state::progress_state::RawProgress;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
 use tokio::sync::mpsc::UnboundedSender;
@@ -14,7 +13,6 @@ pub struct StateAdaptor {
     progress_state: ProgressBarState,
     spotify_client: SpotifyClient,
     tx: UnboundedSender<PlayerState>,
-    update_state: UpdateTicks,
 }
 
 impl StateAdaptor {
@@ -24,13 +22,11 @@ impl StateAdaptor {
         spotify_client: SpotifyClient,
         tx: UnboundedSender<PlayerState>,
     ) -> Self {
-        let update_state = UpdateTicks::new(Some(3000));
         Self {
             player_state,
             progress_state,
             spotify_client,
             tx,
-            update_state,
         }
     }
 
