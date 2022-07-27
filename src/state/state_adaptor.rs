@@ -1,3 +1,4 @@
+use crate::events::types::SpotifyEvents;
 use crate::state::progress_state::RawProgress;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
 use tokio::sync::mpsc::UnboundedSender;
@@ -51,6 +52,17 @@ impl StateAdaptor {
                     .collect::<Vec<String>>()
                     .join(" "),
             );
+        }
+    }
+
+    pub async fn handle_event(&self, event: SpotifyEvents) {
+        match event {
+            SpotifyEvents::StartTrack(track) => {
+                self.spotify_client
+                    .play_track(track.track_id, track.playlist_id)
+                    .await;
+            }
+            _ => {}
         }
     }
 

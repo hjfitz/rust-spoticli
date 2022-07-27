@@ -31,35 +31,48 @@ pub struct PlayerAreas {
 pub struct Builder {}
 
 impl Builder {
-    fn create_list(items: Vec<ListItem>, title: &str) -> List {
+    fn create_styled_title(val: String, selected: bool) -> Span<'static> {
+        match selected {
+            true => Span::styled(val, Style::default().fg(Color::Green)),
+            false => Span::styled(val, Style::default().fg(Color::Magenta)),
+        }
+    }
+
+    fn create_list<'list>(
+        items: Vec<ListItem<'list>>,
+        title: Span<'list>,
+        selected: bool,
+    ) -> List<'list> {
+        let hi_color = if selected {
+            Color::LightGreen
+        } else {
+            Color::LightMagenta
+        };
         List::new(items)
-            .block(
-                Block::default()
-                    .title(Span::styled(title, Style::default().fg(Color::Green)))
-                    .borders(Borders::ALL),
-            )
-            .style(Style::default().fg(Color::White))
+            .block(Block::default().title(title).borders(Borders::ALL))
+            .style(Style::default().fg(hi_color))
             .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
             .highlight_symbol(" 👉 ")
     }
 
-    pub fn create_playlist_list(playlists: &Vec<AppPlaylist>) -> List {
+    pub fn create_playlist_list(playlists: &Vec<AppPlaylist>, selected: bool) -> List {
         let playlist_items = playlists
             .iter()
             .map(|p| ListItem::new(p.name.clone()))
             .collect::<Vec<ListItem>>();
 
-        Builder::create_list(playlist_items, "Playlists")
+        let title = Builder::create_styled_title("Playlists".to_string(), selected);
+        Builder::create_list(playlist_items, title, selected)
     }
 
-    pub fn create_playlist_track_list(tracks: &Vec<Item>, title: String) -> List {
+    pub fn create_playlist_track_list(tracks: &Vec<Item>, title: String, selected: bool) -> List {
         let track_titles = tracks
             .iter()
             .map(|i| ListItem::new(i.track.name.clone()))
             .collect::<Vec<ListItem>>();
 
-        let playlist_title = title.as_str();
-        Builder::create_list(track_titles, playlist_title)
+        let playlist_track_title = Builder::create_styled_title(title, selected);
+        Builder::create_list(track_titles, playlist_track_title, selected)
     }
 
     pub fn create_progress_bar(seconds_elapsed: f64, track_time: f64) -> LineGauge<'static> {

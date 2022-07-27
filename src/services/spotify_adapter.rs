@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{collections::HashMap, fmt::Debug};
 
 const SPOTIFY_API_BASE: &'static str = "https://api.spotify.com/v1";
 
@@ -55,6 +55,16 @@ impl SpotifyAdapter {
         }
 
         Ok(parsed_response.unwrap())
+    }
+
+    pub async fn put<T: serde::Serialize>(&self, pathname: &str, body: T) {
+        let api_url = SpotifyAdapter::get_api_url(pathname);
+        self.http_client
+            .put(api_url)
+            .json(&body)
+            .bearer_auth(&self.access_token)
+            .send()
+            .await;
     }
 
     pub async fn get_raw(&self, pathname: &str) -> Result<String, ()> {

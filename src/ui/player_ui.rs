@@ -1,9 +1,10 @@
-use crate::state::playlist_state::PlaylistState;
 use crate::types::app::playlists::AppPlaylist;
+use crate::{state::playlist_state::PlaylistState, types::app::event_types::NewSong};
 
 // use std::f64::is_nan;
 use std::{io, process, thread, time::Duration};
 
+use tokio::sync::mpsc::UnboundedSender;
 use tui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -37,12 +38,14 @@ pub struct PlayerUi {
     playlists: Vec<AppPlaylist>,
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     selected_pane: SelectedPane,
+    data_tx: UnboundedSender<SpotifyEvents>,
 }
 
 impl PlayerUi {
     pub fn new(
         playlists: Vec<AppPlaylist>,
         terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
+        data_tx: UnboundedSender<SpotifyEvents>,
     ) -> Self {
         let mut playlist_state = ListState::default();
         playlist_state.select(Some(0));
@@ -59,6 +62,7 @@ impl PlayerUi {
             playlist_state,
             playlists,
             terminal,
+            data_tx,
             playlist_track_states,
             selected_pane: SelectedPane::Tracks,
         }
@@ -75,11 +79,15 @@ impl PlayerUi {
     }
 
     pub fn redraw(&mut self, state: PlayerState) -> Result<(), io::Error> {
-        let playlist_list = Builder::create_playlist_list(&self.playlists);
+        let playlist_list = Builder::create_playlist_list(
+            &self.playlists,
+            self.selected_pane == SelectedPane::Playlist,
+        );
         let playlist_idx = self.playlist_state.selected().unwrap_or(0);
         let playlist_items_list = Builder::create_playlist_track_list(
             &self.playlists[playlist_idx].items,
             self.playlists[playlist_idx].name.clone(),
+            self.selected_pane == SelectedPane::Tracks,
         );
         let now_playing_para = Builder::create_now_playing_para(&state);
         let time_gauge = Builder::create_progress_bar(
@@ -163,6 +171,23 @@ impl PlayerUi {
                         };
 
                         cur_state.select(Some(next_idx));
+                    }
+                    SpotifyEvents::PlayTrack => {
+                        let playlist_idx = self.playlist_state.selected().unwrap();
+                        let track_idx =
+                            self.playlist_track_states[playlist_idx].selected().unwrap();
+
+                        let playlist = &self.playlists[playlist_idx];
+                        let track_id = playlist.items[track_idx].track.id.clone();
+
+                        let playlist_id = playlist.id.clone();
+
+                        let to_play = NewSong {
+                            track_id,
+                            playlist_id,
+                        };
+
+                        self.data_tx.send(SpotifyEvents::StartTrack(to_play));
                     }
                     _ => {}
                 }

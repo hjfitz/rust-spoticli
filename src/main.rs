@@ -36,6 +36,7 @@ async fn main() -> Result<(), io::Error> {
 
     let (playing_tx, mut playing_rx) = tokio::sync::mpsc::unbounded_channel();
     let (events_tx, mut events_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (data_tx, mut data_rx) = tokio::sync::mpsc::unbounded_channel();
 
     let polling_thread = tokio::spawn(async move {
         let progress_bar_state = ProgressBarState::new();
@@ -44,6 +45,10 @@ async fn main() -> Result<(), io::Error> {
             StateAdaptor::new(playing_state, progress_bar_state, spotify, playing_tx);
         loop {
             state_bridge.poll().await;
+            let event = data_rx.try_recv();
+            if event.is_ok() {
+                state_bridge.handle_event(event.unwrap()).await;
+            }
             thread::sleep(THREAD_SLEEP_DURATION);
         }
     });
@@ -52,7 +57,7 @@ async fn main() -> Result<(), io::Error> {
         let stdout = io::stdout();
         let backend = CrosstermBackend::new(stdout);
         let terminal = Terminal::new(backend).unwrap();
-        let mut player_ui = PlayerUi::new(playlists, terminal);
+        let mut player_ui = PlayerUi::new(playlists, terminal, data_tx);
         player_ui.init_display().unwrap();
         loop {
             let kb_event = events_rx.try_recv();

@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use serde_derive::Serialize;
+
 use crate::services::spotify_adapter::SpotifyAdapter;
 use crate::types::app::playlists::AppPlaylist;
 use crate::types::full::playback_state::PlaybackState;
@@ -63,4 +67,23 @@ impl SpotifyClient {
 
         playlist_data
     }
+
+    pub async fn play_track(&self, id: String, context: String) {
+        // let mut data = HashMap::new();
+        let track_uri = format!("spotify:track:{}", id);
+        let context_uri = format!("spotify:playlist:{}", context);
+        // data.insert("uris", vec![track_uri]);
+        // data.insert("context_uri", context_uri);
+        let data = ToPlay {
+            context_uri,
+            uris: vec![track_uri],
+        };
+        self.adapter.put("/me/player/play", data).await;
+    }
+}
+
+#[derive(Serialize)]
+struct ToPlay {
+    context_uri: String,
+    uris: Vec<String>,
 }
