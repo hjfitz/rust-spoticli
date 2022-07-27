@@ -69,21 +69,25 @@ impl SpotifyClient {
     }
 
     pub async fn play_track(&self, id: String, context: String) {
-        // let mut data = HashMap::new();
         let track_uri = format!("spotify:track:{}", id);
         let context_uri = format!("spotify:playlist:{}", context);
-        // data.insert("uris", vec![track_uri]);
-        // data.insert("context_uri", context_uri);
+
         let data = ToPlay {
             context_uri,
-            uris: vec![track_uri],
+            offset: Offset { uri: track_uri },
         };
         self.adapter.put("/me/player/play", data).await;
     }
 }
 
 #[derive(Serialize)]
+
+struct Offset {
+    uri: String,
+}
+
+#[derive(Serialize)]
 struct ToPlay {
     context_uri: String,
-    uris: Vec<String>,
+    offset: Offset,
 }

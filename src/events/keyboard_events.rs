@@ -16,10 +16,10 @@ impl KeyboardEvents {
     pub fn poll(&self) -> Result<(), io::Error> {
         if let Event::Key(key) = event::read()? {
             match key.code {
-                KeyCode::Down | KeyCode::Char('k') => {
+                KeyCode::Down | KeyCode::Char('j') => {
                     self.ui_tx.send(SpotifyEvents::NavigateDown);
                 }
-                KeyCode::Up | KeyCode::Char('j') => {
+                KeyCode::Up | KeyCode::Char('k') => {
                     self.ui_tx.send(SpotifyEvents::NavigateUp);
                 }
                 KeyCode::Left | KeyCode::Char('h') => {

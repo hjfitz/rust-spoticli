@@ -59,12 +59,24 @@ impl SpotifyAdapter {
 
     pub async fn put<T: serde::Serialize>(&self, pathname: &str, body: T) {
         let api_url = SpotifyAdapter::get_api_url(pathname);
-        self.http_client
+        let resp = self
+            .http_client
             .put(api_url)
             .json(&body)
             .bearer_auth(&self.access_token)
             .send()
             .await;
+
+        match resp {
+            Err(x) => println!("{}", x),
+            Ok(r) => {
+                let text = r.text().await.unwrap();
+                println!("{}", text);
+            }
+        }
+        // if resp.is_err() {
+        //     println!("{}", resp.err())
+        // }
     }
 
     pub async fn get_raw(&self, pathname: &str) -> Result<String, ()> {
