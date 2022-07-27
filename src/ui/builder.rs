@@ -6,6 +6,7 @@ use tui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     symbols,
+    text::Span,
     widgets::{Block, BorderType, Borders, LineGauge, List, ListItem, ListState, Paragraph},
     Frame, Terminal,
 };
@@ -30,9 +31,13 @@ pub struct PlayerAreas {
 pub struct Builder {}
 
 impl Builder {
-    fn create_list(items: Vec<ListItem>, title: String) -> List {
+    fn create_list(items: Vec<ListItem>, title: &str) -> List {
         List::new(items)
-            .block(Block::default().title(title).borders(Borders::ALL))
+            .block(
+                Block::default()
+                    .title(Span::styled(title, Style::default().fg(Color::Green)))
+                    .borders(Borders::ALL),
+            )
             .style(Style::default().fg(Color::White))
             .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
             .highlight_symbol(" 👉 ")
@@ -44,7 +49,7 @@ impl Builder {
             .map(|p| ListItem::new(p.name.clone()))
             .collect::<Vec<ListItem>>();
 
-        Builder::create_list(playlist_items, "Playlists".to_string())
+        Builder::create_list(playlist_items, "Playlists")
     }
 
     pub fn create_playlist_track_list(tracks: &Vec<Item>, title: String) -> List {
@@ -53,7 +58,8 @@ impl Builder {
             .map(|i| ListItem::new(i.track.name.clone()))
             .collect::<Vec<ListItem>>();
 
-        Builder::create_list(track_titles, title)
+        let playlist_title = title.as_str();
+        Builder::create_list(track_titles, playlist_title)
     }
 
     pub fn create_progress_bar(seconds_elapsed: f64, track_time: f64) -> LineGauge<'static> {
