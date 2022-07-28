@@ -2,11 +2,13 @@ use crate::events::types::SpotifyEvents;
 use crate::state::progress_state::RawProgress;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
 use tokio::sync::mpsc::UnboundedSender;
+use tui::text::Text;
 
 pub struct PlayerState {
     pub now_playing: String,
     pub time: String,
     pub raw_time: RawProgress,
+    pub album_art: Text,
 }
 
 pub struct StateAdaptor {
@@ -51,6 +53,8 @@ impl StateAdaptor {
                     .map(|artists| artists.name)
                     .collect::<Vec<String>>()
                     .join(" "),
+                playing.item.id,
+                playing.item.album.images[0].url,
             );
         }
     }
@@ -77,6 +81,7 @@ impl StateAdaptor {
 
         let state = PlayerState {
             now_playing: self.player_state.to_player_string(),
+            album_art: self.player_state.get_album_art(),
             time: self.progress_state.get_player_progress_seconds_str(),
             raw_time: self.progress_state.get_player_progress_seconds_raw(),
         };

@@ -1,9 +1,15 @@
+use tui::text::Text;
+
+use crate::ui::album_art::AlbumArtGenerator;
+
 use super::update_ticks::UpdateTicks;
 
 pub struct PlayingState {
     title: String,
     album: String,
     artist: String,
+    id: String,
+    album_art: Option<Text>,
     update_state: UpdateTicks,
 }
 
@@ -14,14 +20,30 @@ impl PlayingState {
             title: "".to_string(),
             album: "".to_string(),
             artist: "".to_string(),
+            id: "".to_string(),
+            album_art: None,
             update_state,
         }
     }
 
-    pub fn set_now_playing(&mut self, title: String, album: String, artist: String) {
+    pub async fn set_now_playing(
+        &mut self,
+        title: String,
+        album: String,
+        artist: String,
+        id: String,
+        art_url: String, // todo: probably should use art url instead of ID
+    ) {
         self.title = title;
         self.album = album;
         self.artist = artist;
+
+        if self.id.ne(&id) {
+            AlbumArtGenerator::fetch_art(art_url);
+            self.id = id;
+            AlbumArtGenerator::clean();
+        }
+
         self.update_state.reset();
     }
 
