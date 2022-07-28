@@ -8,19 +8,34 @@ use crate::types::full::playback_state::PlaybackState;
 use crate::types::full::playlist::Playlist;
 use crate::types::full::playlists::Playlists;
 use crate::types::full::user::SpotifyUser;
+use crate::ui::album_art::AlbumArtGenerator;
 
 #[derive(Clone)]
 pub struct SpotifyClient {
     adapter: SpotifyAdapter,
+    now_playing: String,
 }
 
 impl SpotifyClient {
     pub fn new(adapter: SpotifyAdapter) -> Self {
-        Self { adapter }
+        Self {
+            adapter,
+            now_playing: "".to_string(),
+        }
     }
 
-    pub async fn get_playback_state(&self) -> Option<PlaybackState> {
+    pub async fn get_playback_state(&mut self) -> Option<PlaybackState> {
         let player_state = self.adapter.get::<PlaybackState>("/me/player").await;
+
+        let player_state_ref = player_state.as_ref().unwrap();
+        let item_id = player_state_ref.item.id.clone();
+        let album_art_url = player_state_ref.item.album.images[0].url.clone();
+        if self.now_playing.ne(&item_id) {
+            // fetch new artwork
+            AlbumArtGenerator::fetch_art(album_art_url).await.unwrap();
+            // set now playing
+            self.now_playing = item_id;
+        }
 
         player_state.ok()
     }
@@ -80,8 +95,8 @@ impl SpotifyClient {
     }
 }
 
+// todo: move to types
 #[derive(Serialize)]
-
 struct Offset {
     uri: String,
 }

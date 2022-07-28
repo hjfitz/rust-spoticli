@@ -26,6 +26,7 @@ pub struct PlayerAreas {
     pub title: Rect,
     pub playlists: Rect,
     pub tracks: Rect,
+    pub art: Rect,
 }
 
 pub struct Builder {}
@@ -134,17 +135,28 @@ impl Builder {
         };
 
         let playlist_contents_chunk = Rect {
-            x: media_chunk.x + (media_chunk.width / 3) + PLAYER_DEFAULT_MARGIN,
+            x: playlist_list_chunk.x + playlist_list_chunk.width + PLAYER_DEFAULT_MARGIN,
             y: media_chunk.y,
             height: media_chunk.height,
-            width: media_chunk.width / 2,
+            width: (media_chunk.width / 3) - 2,
         };
+
+        let now_playing_art = Rect {
+            x: playlist_contents_chunk.x + playlist_contents_chunk.width + PLAYER_DEFAULT_MARGIN,
+            y: media_chunk.y,
+            height: media_chunk.height,
+            width: (media_chunk.width / 3) - 1,
+        };
+
+        //let now_playing_art = Rect {
+        //x: playlist_contents_chunk.x +
 
         PlayerAreas {
             playlists: playlist_list_chunk,
             tracks: playlist_contents_chunk,
             title: chunks[1],
             progress: chunks[2],
+            art: now_playing_art,
         }
     }
 }

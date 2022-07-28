@@ -5,6 +5,7 @@ use crate::{state::playlist_state::PlaylistState, types::app::event_types::NewSo
 use std::{io, process, thread, time::Duration};
 
 use tokio::sync::mpsc::UnboundedSender;
+use tui::text::Text;
 use tui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -22,6 +23,7 @@ use crossterm::{
 
 use crate::events::types::SpotifyEvents;
 
+use super::album_art::AlbumArtGenerator;
 use super::builder::{Builder, PlayerAreas};
 
 use crate::state::state_adaptor::PlayerState;
@@ -101,11 +103,21 @@ impl PlayerUi {
                 tracks,
                 title,
                 progress,
+                art,
             } = Builder::create_container(frame);
 
+            let ascii_album_art = AlbumArtGenerator::generate_ascii_art((art.width as u32) - 2);
+
+            frame.render_widget(
+                Paragraph::new(ascii_album_art)
+                    .block(Block::default().borders(Borders::ALL))
+                    .style(Style::default()),
+                art,
+            );
             frame.render_widget(now_playing_para, title);
             frame.render_widget(time_gauge, progress);
             frame.render_stateful_widget(playlist_list, playlists, &mut self.playlist_state);
+
             frame.render_stateful_widget(
                 playlist_items_list,
                 tracks,
@@ -116,6 +128,7 @@ impl PlayerUi {
         Ok(())
     }
 
+    // todo: should be in another struct
     pub fn handle_keyboard_events(&mut self, event: SpotifyEvents) -> Result<(), io::Error> {
         match self.selected_pane {
             SelectedPane::Playlist => {
