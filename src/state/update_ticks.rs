@@ -14,7 +14,7 @@ impl UpdateTicks {
         Self {
             last_updated_at: SystemTime::now(),
             interval_ms,
-            ms_since_update: interval_ms, // 0,
+            ms_since_update: 0,
             should_hydrate: true,
         }
     }

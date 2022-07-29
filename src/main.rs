@@ -20,7 +20,7 @@ use crate::state::{
 
 use crate::events::keyboard_events::KeyboardEvents;
 
-const THREAD_SLEEP_DURATION: std::time::Duration = Duration::from_millis(50);
+const THREAD_SLEEP_DURATION: std::time::Duration = Duration::from_millis(100);
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
@@ -49,7 +49,7 @@ async fn main() -> Result<(), io::Error> {
             if event.is_ok() {
                 state_bridge.handle_event(event.unwrap()).await;
             }
-            thread::sleep(THREAD_SLEEP_DURATION);
+            thread::sleep(Duration::from_millis(200));
         }
     });
 
@@ -64,11 +64,11 @@ async fn main() -> Result<(), io::Error> {
             if kb_event.is_ok() {
                 player_ui.handle_keyboard_events(kb_event.unwrap()).unwrap();
             }
-            let data = playing_rx.recv().await;
-            if data.is_some() {
+            let data = playing_rx.try_recv();
+            if data.is_ok() {
                 player_ui.redraw(data.unwrap()).unwrap();
             }
-            thread::sleep(THREAD_SLEEP_DURATION);
+            thread::sleep(Duration::from_millis(25));
         }
     });
 
@@ -76,7 +76,7 @@ async fn main() -> Result<(), io::Error> {
         let keyboard_events = KeyboardEvents::new(events_tx);
         loop {
             keyboard_events.poll().unwrap();
-            thread::sleep(THREAD_SLEEP_DURATION);
+            thread::sleep(Duration::from_millis(25));
         }
     });
 

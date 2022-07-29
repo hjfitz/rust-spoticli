@@ -2,15 +2,12 @@ use std::fs::{self, File};
 use std::io::{copy, Cursor};
 use std::path::Path;
 
-use ansi_term::ANSIStrings;
-use ansi_term::Color::RGB;
-use ansi_term::Style;
-use glob::glob;
 use image::imageops::FilterType;
 use image::GenericImageView;
+use tui::style::Style;
 
-use ansi_to_tui::IntoText;
-use tui::text::Text;
+use tui::style::Color;
+use tui::text::{Span, Spans};
 
 pub struct AlbumArtGenerator {}
 
@@ -63,19 +60,18 @@ impl AlbumArtGenerator {
         Ok(output_fname)
     }
 
-    pub fn generate_ascii_art(width: u32) -> Text<'static> {
+    pub fn generate_ascii_art(width: u32) -> Option<Vec<Spans<'static>>> {
         let fname_result = AlbumArtGenerator::find_album_art_file();
 
         if fname_result.is_none() {
-            return Text::default();
+            return None;
         }
 
         let fname = fname_result.unwrap();
         let raw_img = image::open(fname);
 
         if raw_img.is_err() {
-            panic!("{:?}", raw_img.err());
-            return Text::default();
+            return None;
         }
 
         let img = raw_img.unwrap();
@@ -83,39 +79,36 @@ impl AlbumArtGenerator {
         let pallete: [char; 7] = [' ', '.', '/', '*', '#', '$', '@'];
         let mut y = 0;
 
-        let mut art = vec![];
-        let small_img = img.resize_exact(width, (width / 2), FilterType::Nearest);
+        let small_img = img.resize_exact(width, width / 2, FilterType::Nearest);
+
+        let mut album_art = vec![vec![]];
         for p in small_img.pixels() {
             if y != p.1 {
-                // art.push("\n".to_string());
-                art.push(Style::new().paint("\n").to_string());
                 y = p.1;
+                album_art.push(vec![]);
             }
 
-            let r = p.2 .0[0] as f32;
-            let g = p.2 .0[1] as f32;
-            let b = p.2 .0[2] as f32;
-            //luminosidade
-            let k = r * 0.3 + g * 0.59 + b * 0.11;
-            let character = ((k / 255.0) * (pallete.len() - 1) as f32).round() as usize;
+            let r = p.2 .0[0];
+            let g = p.2 .0[1];
+            let b = p.2 .0[2];
+            // brightness
+            let k = r as f32 * 0.3 + g as f32 * 0.59 + b as f32 * 0.11;
+            let character = ((k / 255.0) * 6f32).round() as usize;
 
             let custom_char = pallete[character];
 
-            let coloured_char = RGB(r as u8, g as u8, b as u8)
-                .paint(custom_char.to_string())
-                .to_string();
-
-            // art.push(custom_char.to_string());
-            art.push(coloured_char);
+            let char_style = Style::default().fg(Color::Rgb(r, g, b));
+            let chr = Span::styled(String::from(custom_char), char_style);
+            let len = album_art.len();
+            let next_line = &mut album_art[len - 1];
+            next_line.push(chr);
         }
 
-        // let painted = ANSIStrings(&art);
+        let processed_art = album_art
+            .into_iter()
+            .map(|l| Spans::from(l))
+            .collect::<Vec<Spans>>();
 
-        let painted_text = art.join("").as_bytes().to_vec().into_text();
-
-        painted_text.unwrap()
-
-        // format!("{}", painted)
-        // format!("{}", art.join(""))
+        Some(processed_art)
     }
 }

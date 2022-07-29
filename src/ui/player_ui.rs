@@ -1,32 +1,26 @@
-use crate::types::app::playlists::AppPlaylist;
-use crate::{state::playlist_state::PlaylistState, types::app::event_types::NewSong};
-
-// use std::f64::is_nan;
-use std::{io, process, thread, time::Duration};
+use std::{io, process};
 
 use tokio::sync::mpsc::UnboundedSender;
-use tui::text::Text;
 use tui::{
     backend::CrosstermBackend,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
-    symbols,
-    widgets::{Block, BorderType, Borders, LineGauge, List, ListItem, ListState, Paragraph},
+    style::Style,
+    widgets::{Block, Borders, ListState, Paragraph},
     Terminal,
 };
 
 use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
+    event::DisableMouseCapture,
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{disable_raw_mode, enable_raw_mode, LeaveAlternateScreen},
 };
 
-use crate::events::types::SpotifyEvents;
-
-use super::album_art::AlbumArtGenerator;
 use super::builder::{Builder, PlayerAreas};
 
+use crate::events::types::SpotifyEvents;
 use crate::state::state_adaptor::PlayerState;
+use crate::state::update_ticks::UpdateTicks;
+use crate::types::app::event_types::NewSong;
+use crate::types::app::playlists::AppPlaylist;
 
 #[derive(PartialEq)]
 enum SelectedPane {
@@ -41,6 +35,7 @@ pub struct PlayerUi {
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
     selected_pane: SelectedPane,
     data_tx: UnboundedSender<SpotifyEvents>,
+    redraw_ticks: UpdateTicks,
 }
 
 impl PlayerUi {
@@ -60,13 +55,16 @@ impl PlayerUi {
             playlist_track_states.push(track_state);
         }
 
+        let redraw_ticks = UpdateTicks::new(None);
+
         Self {
             playlist_state,
             playlists,
             terminal,
             data_tx,
             playlist_track_states,
-            selected_pane: SelectedPane::Tracks,
+            redraw_ticks,
+            selected_pane: SelectedPane::Playlist,
         }
     }
 
@@ -97,6 +95,14 @@ impl PlayerUi {
             state.raw_time.track_time_seconds as f64,
         );
 
+        let art_para = match state.album_art.clone() {
+            Some(album_art) => Paragraph::new(album_art)
+                .block(Block::default().borders(Borders::ALL))
+                .style(Style::default()),
+            None => Paragraph::new(""),
+        };
+
+        let can_update_art_width = self.redraw_ticks.can_update();
         self.terminal.draw(|frame| {
             let PlayerAreas {
                 playlists,
@@ -106,14 +112,13 @@ impl PlayerUi {
                 art,
             } = Builder::create_container(frame);
 
-            let ascii_album_art = AlbumArtGenerator::generate_ascii_art((art.width as u32) - 2);
+            if can_update_art_width {
+                self.redraw_ticks.reset();
+                self.data_tx
+                    .send(SpotifyEvents::SetArtWidth(art.width as u32));
+            }
 
-            frame.render_widget(
-                Paragraph::new(ascii_album_art)
-                    .block(Block::default().borders(Borders::ALL))
-                    .style(Style::default()),
-                art,
-            );
+            frame.render_widget(art_para, art);
             frame.render_widget(now_playing_para, title);
             frame.render_widget(time_gauge, progress);
             frame.render_stateful_widget(playlist_list, playlists, &mut self.playlist_state);

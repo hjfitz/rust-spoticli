@@ -8,5 +8,6 @@ pub enum SpotifyEvents {
     PlayTrack,
     StartTrack(NewSong), // string === track id
     Quit,
-    FetchNewArt,
+    NewArt,
+    SetArtWidth(u32),
 }
