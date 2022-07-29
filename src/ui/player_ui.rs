@@ -103,6 +103,7 @@ impl PlayerUi {
         };
 
         let can_update_art_width = self.redraw_ticks.can_update();
+        let frame = self.terminal.get_frame();
         self.terminal.draw(|frame| {
             let PlayerAreas {
                 playlists,

@@ -92,10 +92,10 @@ impl AlbumArtGenerator {
             let g = p.2 .0[1];
             let b = p.2 .0[2];
             // brightness
-            let k = r as f32 * 0.3 + g as f32 * 0.59 + b as f32 * 0.11;
-            let character = ((k / 255.0) * 6f32).round() as usize;
-
-            let custom_char = pallete[character];
+            //let k = r as f32 * 0.3 + g as f32 * 0.59 + b as f32 * 0.11;
+            //let character = ((k / 255.0) * 6f32).round() as usize;
+            //let custom_char = pallete[character];
+            let custom_char = '█';
 
             let char_style = Style::default().fg(Color::Rgb(r, g, b));
             let chr = Span::styled(String::from(custom_char), char_style);
