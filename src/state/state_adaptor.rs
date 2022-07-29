@@ -3,7 +3,7 @@ use crate::state::progress_state::RawProgress;
 use crate::ui::album_art::AlbumArtGenerator;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
 use tokio::sync::mpsc::UnboundedSender;
-use tui::text::{Spans, Text};
+use tui::text::Spans;
 
 pub struct PlayerState {
     pub now_playing: String,
