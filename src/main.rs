@@ -56,7 +56,7 @@ async fn main() -> Result<(), io::Error> {
             if event.is_ok() {
                 state_bridge.handle_event(event.unwrap()).await;
             }
-            thread::sleep(Duration::from_millis(200));
+            thread::sleep(THREAD_SLEEP_DURATION);
         }
     });
 
@@ -75,7 +75,7 @@ async fn main() -> Result<(), io::Error> {
             if data.is_ok() {
                 player_ui.redraw(data.unwrap()).unwrap();
             }
-            thread::sleep(Duration::from_millis(25));
+            thread::sleep(THREAD_SLEEP_DURATION);
         }
     });
 
@@ -83,7 +83,7 @@ async fn main() -> Result<(), io::Error> {
         let keyboard_events = KeyboardEvents::new(events_tx);
         loop {
             keyboard_events.poll().unwrap();
-            thread::sleep(Duration::from_millis(25));
+            thread::sleep(THREAD_SLEEP_DURATION);
         }
     });
 

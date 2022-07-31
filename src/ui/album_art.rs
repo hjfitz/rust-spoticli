@@ -72,6 +72,7 @@ impl AlbumArtGenerator {
         // should probably store in memory whenever we get a new track playing
         // could probably store chars with escape codes in the file once we download and just
         // decode that every render of this. Can put this on to a new thread
+        //println!("rendering {}", fname);
         let raw_img = image::open(fname);
 
         if raw_img.is_err() {

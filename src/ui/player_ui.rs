@@ -120,6 +120,7 @@ impl PlayerUi {
 
             /*
             */
+            // new perf/ todo: only render a widget when changes
                 frame.render_widget(art_para, art);
                 frame.render_widget(now_playing_para, title);
                 frame.render_widget(time_gauge, progress);
