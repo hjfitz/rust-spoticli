@@ -24,6 +24,7 @@ impl SpotifyAdapter {
 
     pub async fn get<T: serde::de::DeserializeOwned>(&self, pathname: &str) -> Result<T, String> {
         let full_api_url = SpotifyAdapter::get_api_url(pathname);
+        let cloned_url = full_api_url.clone();
 
         let resp_raw = self
             .http_client
@@ -48,9 +49,10 @@ impl SpotifyAdapter {
 
         let parsed_response = serde_json::from_str(&resp_data);
 
+
         if parsed_response.is_err() {
             println!("{}", resp_data.clone());
-            panic!("{:?}", parsed_response.err());
+            panic!("{}, {:?}", cloned_url, parsed_response.err());
             return Err("Unable to parse response".to_string());
         }
 

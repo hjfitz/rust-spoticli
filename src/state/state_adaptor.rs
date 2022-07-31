@@ -1,4 +1,5 @@
 use crate::events::types::SpotifyEvents;
+use crate::state::album_art_state::AlbumArtState;
 use crate::state::progress_state::RawProgress;
 use crate::ui::album_art::AlbumArtGenerator;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
@@ -15,9 +16,9 @@ pub struct PlayerState {
 pub struct StateAdaptor {
     player_state: PlayingState,
     progress_state: ProgressBarState,
+    art_state: AlbumArtState,
     spotify_client: SpotifyClient,
     tx: UnboundedSender<PlayerState>,
-    generated_art: Option<Vec<Spans<'static>>>,
 }
 
 impl StateAdaptor {
@@ -25,6 +26,7 @@ impl StateAdaptor {
         player_state: PlayingState,
         progress_state: ProgressBarState,
         spotify_client: SpotifyClient,
+        art_state: AlbumArtState,
         tx: UnboundedSender<PlayerState>,
     ) -> Self {
         Self {
@@ -32,7 +34,7 @@ impl StateAdaptor {
             progress_state,
             spotify_client,
             tx,
-            generated_art: None,
+            art_state,
         }
     }
 
@@ -57,10 +59,10 @@ impl StateAdaptor {
                         .map(|artists| artists.name)
                         .collect::<Vec<String>>()
                         .join(" "),
-                    // playing.item.id,
-                    // playing.item.album.images[0].url,
                 )
                 .await;
+            let new_art_src = playing.item.album.images[0].url.clone();
+            self.art_state.try_update_by_src(new_art_src).await;
         }
     }
 
@@ -72,7 +74,7 @@ impl StateAdaptor {
                     .await;
             }
             SpotifyEvents::SetArtWidth(new_width) => {
-                self.generated_art = AlbumArtGenerator::generate_ascii_art((new_width) - 2);
+                self.art_state.try_update_by_width(new_width).await;
             }
             _ => {}
         }
@@ -87,11 +89,11 @@ impl StateAdaptor {
             self.progress_state.bump_player_progress();
         }
 
-        let album_art = self.generated_art.clone();
+        let album_art = self.art_state.get_album_art();
+
 
         let state = PlayerState {
             now_playing: self.player_state.to_player_string(),
-            // album_art: self.player_state.get_album_art(),
             time: self.progress_state.get_player_progress_seconds_str(),
             raw_time: self.progress_state.get_player_progress_seconds_raw(),
             album_art,

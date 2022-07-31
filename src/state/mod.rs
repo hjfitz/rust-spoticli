@@ -1,3 +1,4 @@
+pub mod album_art_state;
 pub mod playing_state;
 pub mod playlist_state;
 pub mod progress_state;

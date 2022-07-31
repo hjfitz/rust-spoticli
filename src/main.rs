@@ -15,7 +15,8 @@ use crate::ui::player_ui::PlayerUi;
 
 use crate::services::{oauth_server::OauthServer, spotify_adapter::SpotifyAdapter};
 use crate::state::{
-    playing_state::PlayingState, progress_state::ProgressBarState, state_adaptor::StateAdaptor,
+    album_art_state::AlbumArtState, playing_state::PlayingState, progress_state::ProgressBarState,
+    state_adaptor::StateAdaptor,
 };
 
 use crate::events::keyboard_events::KeyboardEvents;
@@ -41,8 +42,14 @@ async fn main() -> Result<(), io::Error> {
     let polling_thread = tokio::spawn(async move {
         let progress_bar_state = ProgressBarState::new();
         let playing_state = PlayingState::new();
-        let mut state_bridge =
-            StateAdaptor::new(playing_state, progress_bar_state, spotify, playing_tx);
+        let art_state = AlbumArtState::new();
+        let mut state_bridge = StateAdaptor::new(
+            playing_state,
+            progress_bar_state,
+            spotify,
+            art_state,
+            playing_tx,
+        );
         loop {
             state_bridge.poll().await;
             let event = data_rx.try_recv();

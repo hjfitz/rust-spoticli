@@ -32,6 +32,7 @@ impl SpotifyClient {
         let album_art_url = player_state_ref.item.album.images[0].url.clone();
         if self.now_playing.ne(&item_id) {
             // fetch new artwork
+            // store in memory on the
             AlbumArtGenerator::fetch_art(album_art_url).await.unwrap();
             // set now playing
             self.now_playing = item_id;

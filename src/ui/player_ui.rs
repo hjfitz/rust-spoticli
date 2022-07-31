@@ -118,16 +118,18 @@ impl PlayerUi {
                     .send(SpotifyEvents::SetArtWidth(art.width as u32));
             }
 
-            frame.render_widget(art_para, art);
-            frame.render_widget(now_playing_para, title);
-            frame.render_widget(time_gauge, progress);
-            frame.render_stateful_widget(playlist_list, playlists, &mut self.playlist_state);
+            /*
+            */
+                frame.render_widget(art_para, art);
+                frame.render_widget(now_playing_para, title);
+                frame.render_widget(time_gauge, progress);
+                frame.render_stateful_widget(playlist_list, playlists, &mut self.playlist_state);
 
-            frame.render_stateful_widget(
-                playlist_items_list,
-                tracks,
-                &mut self.playlist_track_states[playlist_idx],
-            );
+                frame.render_stateful_widget(
+                    playlist_items_list,
+                    tracks,
+                    &mut self.playlist_track_states[playlist_idx],
+                );
         })?;
 
         Ok(())
