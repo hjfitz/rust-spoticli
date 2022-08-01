@@ -67,13 +67,13 @@ async fn main() -> Result<(), io::Error> {
         let mut player_ui = PlayerUi::new(playlists, terminal, data_tx);
         player_ui.init_display().unwrap();
         loop {
-            let kb_event = events_rx.try_recv();
-            if kb_event.is_ok() {
-                player_ui.handle_keyboard_events(kb_event.unwrap()).unwrap();
+            let new_kb_event = events_rx.try_recv();
+            if let Ok(kb_event) = new_kb_event {
+                player_ui.handle_keyboard_events(kb_event).unwrap();
             }
             let data = playing_rx.try_recv();
-            if data.is_ok() {
-                player_ui.redraw(data.unwrap()).unwrap();
+            if let Ok(player_data) = data {
+                player_ui.redraw(player_data).unwrap();
             }
             thread::sleep(THREAD_SLEEP_DURATION);
         }

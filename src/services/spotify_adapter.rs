@@ -1,6 +1,5 @@
-use std::{collections::HashMap, fmt::Debug};
 
-const SPOTIFY_API_BASE: &'static str = "https://api.spotify.com/v1";
+const SPOTIFY_API_BASE: &str = "https://api.spotify.com/v1";
 
 #[derive(Clone)]
 pub struct SpotifyAdapter {
@@ -51,9 +50,7 @@ impl SpotifyAdapter {
 
 
         if parsed_response.is_err() {
-            println!("{}", resp_data.clone());
             panic!("{}, {:?}", cloned_url, parsed_response.err());
-            return Err("Unable to parse response".to_string());
         }
 
         Ok(parsed_response.unwrap())
@@ -76,25 +73,5 @@ impl SpotifyAdapter {
                 println!("{}", text);
             }
         }
-        // if resp.is_err() {
-        //     println!("{}", resp.err())
-        // }
-    }
-
-    pub async fn get_raw(&self, pathname: &str) -> Result<String, ()> {
-        let full_api_url = SpotifyAdapter::get_api_url(pathname);
-
-        let raw_response = self
-            .http_client
-            .get(full_api_url)
-            .bearer_auth(&self.access_token)
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap();
-
-        Ok(raw_response)
     }
 }

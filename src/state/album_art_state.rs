@@ -49,13 +49,12 @@ impl AlbumArtState {
         }
 
         let remote = self.remote_src.as_ref().unwrap().clone();
-        AlbumArtGenerator::fetch_art(remote).await;
-        let generated_art = AlbumArtGenerator::generate_ascii_art(self.width);
+        //AlbumArtGenerator::fetch_art(remote).await;
+        let generated_art = AlbumArtGenerator::generate_ascii_art(remote, self.width).await;
         self.art = generated_art;
     }
 
     pub fn get_album_art(&self) -> Option<Vec<Spans<'static>>> {
-        let art = self.art.clone();
-        art
+        self.art.clone()
     }
 }

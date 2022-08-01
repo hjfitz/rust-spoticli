@@ -7,15 +7,10 @@ use tui::{
     style::{Color, Modifier, Style},
     symbols,
     text::Span,
-    widgets::{Block, BorderType, Borders, LineGauge, List, ListItem, ListState, Paragraph},
-    Frame, Terminal,
+    widgets::{Block, BorderType, Borders, LineGauge, List, ListItem, Paragraph},
+    Frame, 
 };
 
-use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
 
 use crate::state::state_adaptor::PlayerState;
 
@@ -56,7 +51,7 @@ impl Builder {
             .highlight_symbol(" 👉 ")
     }
 
-    pub fn create_playlist_list(playlists: &Vec<AppPlaylist>, selected: bool) -> List {
+    pub fn create_playlist_list(playlists: &[AppPlaylist], selected: bool) -> List {
         let playlist_items = playlists
             .iter()
             .map(|p| ListItem::new(p.name.clone()))
@@ -66,7 +61,7 @@ impl Builder {
         Builder::create_list(playlist_items, title, selected)
     }
 
-    pub fn create_playlist_track_list(tracks: &Vec<Item>, title: String, selected: bool) -> List {
+    pub fn create_playlist_track_list(tracks: &[Item], title: String, selected: bool) -> List {
         let track_titles = tracks
             .iter()
             .map(|i| ListItem::new(i.track.name.clone()))
