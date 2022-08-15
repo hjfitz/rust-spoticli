@@ -1,9 +1,7 @@
 use crate::events::types::SpotifyEvents;
 use crate::state::album_art_state::AlbumArtState;
 use crate::state::progress_state::RawProgress;
-use crate::ui::album_art::AlbumArtGenerator;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
-use tokio::sync::mpsc::UnboundedSender;
 use tui::text::Spans;
 
 pub struct PlayerState {
@@ -18,7 +16,6 @@ pub struct StateAdaptor {
     progress_state: ProgressBarState,
     art_state: AlbumArtState,
     spotify_client: SpotifyClient,
-    tx: UnboundedSender<PlayerState>,
 }
 
 impl StateAdaptor {
@@ -27,13 +24,11 @@ impl StateAdaptor {
         progress_state: ProgressBarState,
         spotify_client: SpotifyClient,
         art_state: AlbumArtState,
-        tx: UnboundedSender<PlayerState>,
     ) -> Self {
         Self {
             player_state,
             progress_state,
             spotify_client,
-            tx,
             art_state,
         }
     }
@@ -88,18 +83,16 @@ impl StateAdaptor {
         if self.progress_state.can_update() {
             self.progress_state.bump_player_progress();
         }
+    }
 
-        let album_art = self.art_state.get_album_art();
 
-
-        let state = PlayerState {
+    pub fn get_state(&mut self) -> PlayerState {
+        PlayerState {
             now_playing: self.player_state.to_player_string(),
             time: self.progress_state.get_player_progress_seconds_str(),
             raw_time: self.progress_state.get_player_progress_seconds_raw(),
-            album_art,
-        };
+            album_art: self.art_state.get_album_art(),
+        }
 
-        // todo: handle
-        self.tx.send(state);
     }
 }

@@ -114,12 +114,9 @@ impl PlayerUi {
 
             if can_update_art_width {
                 self.redraw_ticks.reset();
-                self.data_tx
-                    .send(SpotifyEvents::SetArtWidth(art.width as u32));
+                self.data_tx.send(SpotifyEvents::SetArtWidth(art.width as u32));
             }
-
-            /*
-            */
+            
             // new perf/ todo: only render a widget when changes
                 frame.render_widget(art_para, art);
                 frame.render_widget(now_playing_para, title);
