@@ -36,6 +36,7 @@ pub struct PlayerUi {
     selected_pane: SelectedPane,
     data_tx: UnboundedSender<SpotifyEvents>,
     redraw_ticks: UpdateTicks,
+    state: Option<PlayerState>,
 }
 
 impl PlayerUi {
@@ -64,6 +65,7 @@ impl PlayerUi {
             data_tx,
             playlist_track_states,
             redraw_ticks,
+            state: None,
             selected_pane: SelectedPane::Playlist,
         }
     }
@@ -224,6 +226,7 @@ impl PlayerUi {
             }
             _ => return Ok(()),
         }
+        // hack: this whole fucking method ew
         Ok(())
     }
 

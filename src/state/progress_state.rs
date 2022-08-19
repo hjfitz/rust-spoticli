@@ -8,6 +8,7 @@ pub struct ProgressBarState {
     update_state: UpdateTicks,
 }
 
+#[derive(PartialEq)]
 pub struct RawProgress {
     pub track_time_seconds: i64,
     pub seconds_elapsed: i64,

@@ -4,6 +4,7 @@ use crate::state::progress_state::RawProgress;
 use crate::{PlayingState, ProgressBarState, SpotifyClient};
 use tui::text::Spans;
 
+#[derive(PartialEq)]
 pub struct PlayerState {
     pub now_playing: String,
     pub time: String,
