@@ -32,6 +32,7 @@ async fn main() -> Result<(), io::Error> {
     let oauth_server = OauthServer::new();
     let spotify_access_token = oauth_server.get_access_token().await;
 
+    println!("access token: {}", spotify_access_token);
     let spotify = SpotifyClient::new(SpotifyAdapter::new(spotify_access_token));
 
     let playlists = spotify.fetch_playlists().await;

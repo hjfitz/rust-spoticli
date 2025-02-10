@@ -23,7 +23,7 @@ pub struct Item {
     pub external_urls: ExternalUrls,
     pub href: String,
     pub id: String,
-    pub images: Vec<Image>,
+    pub images: Option<Vec<Image>>,
     pub name: String,
     pub owner: Owner,
     #[serde(rename = "primary_color")]

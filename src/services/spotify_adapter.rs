@@ -48,7 +48,6 @@ impl SpotifyAdapter {
 
         let parsed_response = serde_json::from_str(&resp_data);
 
-
         if parsed_response.is_err() {
             panic!("{}, {:?}", cloned_url, parsed_response.err());
         }
